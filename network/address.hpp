@@ -1,19 +1,43 @@
 #pragma once
-#include "includes.h"
+#include "abstract_address.hpp"
+#include <stdexcept>
 
 namespace Network::Template
 {
 
-constexpr bool is_ipv4(family_t _family) { return _family == AF_INET; }
-constexpr bool is_ipv6(family_t _family) { return _family == AF_INET6; }
-constexpr bool is_ip(family_t _family) { return is_ipv4(_family) || is_ipv6(_family); }
 
-template<family_t _Family> struct AddressTypeSelector { using type = sockaddr_storage; };
+constexpr bool is_ipv4(family_t _af) { return _af == AF_INET; }
+constexpr bool is_ipv6(family_t _af) { return _af == AF_INET6; }
+constexpr bool is_ip(family_t _af)   { return is_ipv4(_af) || is_ipv6(_af); }
+
+/// AddressTypeSelector
+/**
+ * Used for defining address type for specified address family
+ * sockaddr_in for ipv4 addresses
+ * sockaddr_in6 for ipv6 addresses
+ * sockaddr_storage for other families
+ * @tparam _AF address family
+ * Using:
+ * @code 
+ * AddressTypeSelector< FAMILY >::type SOME_VARIABLE...;
+ * or
+ * using SOME_TYPE = typename AddressTypeSelector< FAMILY >::type;
+ * @code
+ */
+template<family_t _AF> struct AddressTypeSelector { using type = sockaddr_storage; };
 template<> struct AddressTypeSelector<AF_INET> { using type = sockaddr_in; };
 template<> struct AddressTypeSelector<AF_INET6> { using type = sockaddr_in6; };
 
+/// Address
+/**
+ * @tparam _Family inet family
+ * Address store socket address in addr_t storage, defined in AddressTypeSelector,
+ *  address length and maximal address length for selected addr_t
+ * @see AddressTypeSelector
+ * Default constructable, copyable, movable
+ */
 template<family_t _Family> 
-class Address
+class Address : public Network::Abstract::Address
 {   
 public:
     using addr_t = typename AddressTypeSelector<_Family>::type;
@@ -27,15 +51,28 @@ public:
     Address(Address&& _addr) = default;
     Address(const Address& _addr) = default;
     Address(const addr_t& _addr) : addr_ { _addr } {}
-    Address(const sockaddr* _addr, size_t _size)
+    /// Construct address from valid sockaddr* with specified size
+    /**
+     * @param _addr sockaddr pointer 
+     * @param _size structure size that must be less then addr_t size
+     * @throws std::invalid_argument if _addr is nullptr or _size > MAX_SIZE
+     */
+    Address(const sockaddr* _addr, size_t _size) : size_ { _size }
     {
-        static_assert(!is_ip(_Family));
         if( !_addr ) 
             throw std::invalid_argument("Null ptr argument.");
         if( size_ > MAX_SIZE )
             throw std::invalid_argument("Socket size must be less or eq sockaddr_storage size.");
         memcpy(&addr_, _addr, size_);
     }
+    /// Address ip constructor
+    /**
+     * Defined only for ip addresses
+     * Construct Address with string ip and port
+     * @param _saddr string ip address
+     * @param _port host port
+     * @throws std::invalid_adrgument if _saddr isn't valid
+    */
     Address(const std::string& _saddr, port_t _port)
     {
         static_assert(is_ip(_Family), "Only ipv4 and ipv6 has constructor from std::string and port.");
@@ -60,6 +97,15 @@ public:
     sockaddr* sockaddr_ptr() { return (sockaddr*)&addr_; }
     const sockaddr* sockaddr_ptr() const { return (sockaddr*)&addr_; }
 
+    operator sockaddr*() { return sockaddr_ptr(); }
+    operator const sockaddr*() const { return sockaddr_ptr(); }
+
+    /// addr()
+    /**
+     * Defined only for ip addresses
+     * @returns in_addr if address family is ipv4
+     * @returns in6_addr if address family is ipv6
+    */
     auto addr() const
     { 
         static_assert(is_ip(_Family), "Only ipv4 and ipv6 has addr().");
@@ -68,15 +114,12 @@ public:
         else
             return addr_.sin6_addr; 
     }
-
-    operator sockaddr*() { return sockaddr_ptr(); }
-    operator const sockaddr*() const { return sockaddr_ptr(); }
-
-    family_t family() const 
-    {
-        auto p = sockaddr_ptr();
-        return p ? p->sa_family : AF_UNSPEC;
-    }
+    /// addr()
+    /**
+     * Defined only for ip addresses
+     * @returns in_addr& if address family is ipv4
+     * @returns in6_addr& if address family is ipv6
+    */
     auto& addr() 
     { 
         static_assert(is_ip(_Family), "Only ipv4 and ipv6 has addr().");
@@ -85,6 +128,11 @@ public:
         else
             return addr_.sin6_addr; 
     }
+    /// port()
+    /**
+     * Defined only for ip addresses
+     * @returns address port
+    */
     auto port() const 
     { 
         static_assert(is_ip(_Family), "Only ipv4 and ipv6 has port().");
@@ -94,6 +142,11 @@ public:
             return addr_.sin6_port; 
     }
 
+    /// to_string()
+    /**
+     * Defined only for ip addresses
+     * @returns address string representation ( format <address>:<port> )
+    */
     std::string to_string() const 
     {
         static_assert(is_ip(_Family), "Only ipv4 and ipv6 has to_string().");
@@ -116,4 +169,4 @@ namespace ipv6
     using endpoint = Network::Template::Address<AF_INET6>;
 };
 
-};
+};  //Network::Template

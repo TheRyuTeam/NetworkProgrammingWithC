@@ -1,7 +1,5 @@
-#include "network/ip/ipv4_socket.hpp"
-#include "network/ip/ipv4_address.hpp"
-#include "network/template_address.hpp"
-#include "network/template_socket.hpp"
+#include "network/address.hpp"
+#include "network/socket.hpp"
 #include <iostream>
 
 int main()

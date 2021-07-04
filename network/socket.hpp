@@ -1,12 +1,18 @@
 #pragma once
-#include "includes.h"
+#include "abstract_socket.hpp"
 #include <memory>
 
 namespace Network::Template
 {
 
+/// Socket
+/**
+ * @tparam _Family address family (i.e ipv4, ipv6, ...)
+ * @tparam _Type socket type (i.e tcp, udp, ...)
+ * @tparam _Protocol socket protocol (i.e ipproto, ...)
+ */
 template<family_t _Family, int _Type, int _Protocol = 0>
-class Socket
+class Socket : public Network::Abstract::Socket
 {
 protected:
 #ifdef _WIN32
@@ -39,12 +45,29 @@ public:
         if( !is_valid() )
             set_error();
     }
+    /// Socket(const _Addr_t& _addr)
+    /**
+     * Create Client socket from some address
+     * Set error if any errors occurred
+     * @tparam _Addr_t address type
+     * @see connect
+     * @see set_error
+     */
     template<typename _Addr_t>
     Socket(const _Addr_t& _addr) : Socket()
     {
         if( !connect(_addr) )
             set_error();   
     }
+    /// Socket(const _Addr_t& _addr)
+    /**
+     * Create Client socket from some address
+     * Set error if any errors occurred
+     * @tparam _Addr_t address type
+     * @see bind
+     * @see listen
+     * @see set_error
+     */
     template<typename _Addr_t>
     Socket(const _Addr_t& _addr, int _backlog) : Socket()
     {
@@ -61,14 +84,49 @@ public:
 
     SOCKET socket() const { return s_; }
 
+    /// bind
+    /**
+     * Bind current socket with address
+     * @tparam _Addr_t address type
+     * @param _addr socket address
+     * @return true if no errors occurred, otherwise false
+     * @see errnz
+     */
     template<typename _Addr_t>
     bool bind(const _Addr_t& _addr) const { return errnz(::bind(socket(), _addr, _addr.size())); }
+    /// listen
+    /**
+     * Start listening current binded socket
+     * @param _backlog acception queue
+     * @return true if no errors occurred, otherwise false
+     * @see errnz
+     */
     bool listen(int _backlog = 1) const { return errnz(::listen(socket(), _backlog)); }
 
+    /// accept 
+    /**
+     * Accept new client connection
+     * @return Socket class with accepted socket
+     */
     Socket accept() const { return ::accept(socket(), nullptr, nullptr); }
+    /// accept 
+    /**
+     * Accept new client connection and save address
+     * @tparam _Addr_t address type
+     * @param _addr socket address where new connection address will be placed
+     * @return Socket class with accepted socket
+     */
     template<typename _Addr_t>
     Socket accept(_Addr_t& _addr) const { return ::accept(socket(), _addr, &_addr.size()); }
 
+    /// connect 
+    /**
+     * Connect to current address
+     * @tparam _Addr_t address type
+     * @param _addr address
+     * @return true if no errors occurred, otherwise false
+     * @see errnz
+     */
     template<typename _Addr_t>
     bool connect(const _Addr_t& _addr) const { return errnz(::connect(socket(), _addr, _addr.size())); }
 

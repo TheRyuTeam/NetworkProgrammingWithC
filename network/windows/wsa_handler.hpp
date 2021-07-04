@@ -1,12 +1,15 @@
 #pragma once
-
 #ifdef _WIN32
 
 #include "common.h"
-#include <iostream>
+
 namespace Network
 {
-
+/// Windows Socket Api Handler
+/**
+ * Singletone
+ * Handle WSAData
+ */
 class WSA
 {
 private:
@@ -20,12 +23,18 @@ private:
     }
 public:
     ~WSA() { WSACleanup(); }
-    static int last_error() { return error_; }
-    static WSAData data() { return data_; }
+    /// init
+    /**
+     * @returns pointer to existing WSA if WSA init-ed
+     * @returns pointer to new WSA if WSA didn't init-ed
+     */
     static WSA* init() 
     {
         return ptr_ ? ptr_ : new WSA();
     };
+    static int last_error() { return error_; }
+    static WSAData data() { return data_; }
+    
 };  //Network::WSA
 
     WSAData WSA::data_ = { };

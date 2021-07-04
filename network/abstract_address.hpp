@@ -4,6 +4,9 @@
 namespace Network::Abstract
 {  // Network::Abstract
 
+/// Abstract Socket Address
+/**
+ */
 struct Address
 {
     virtual socklen_t& size() = 0;
