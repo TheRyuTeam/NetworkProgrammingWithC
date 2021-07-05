@@ -1,0 +1,5 @@
+D:/projects/NetworkProgrammingWithC/cmake-build-debug/CMakeFiles/server.dir
+D:/projects/NetworkProgrammingWithC/cmake-build-debug/CMakeFiles/client.dir
+D:/projects/NetworkProgrammingWithC/cmake-build-debug/CMakeFiles/http_server.dir
+D:/projects/NetworkProgrammingWithC/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/projects/NetworkProgrammingWithC/cmake-build-debug/CMakeFiles/rebuild_cache.dir
