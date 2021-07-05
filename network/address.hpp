@@ -1,8 +1,11 @@
 #pragma once
 #include "abstract_address.hpp"
 #include <stdexcept>
+#ifndef DEFAULT_PORT
+#define DEFAULT_PORT 9595
+#endif
 
-namespace Network::Template
+namespace Network
 {
 
 
@@ -158,15 +161,23 @@ public:
     }
 };
 
+namespace tcp { template<family_t _AF> using endpoint = Network::Address<_AF>; }
+namespace udp { template<family_t _AF> using endpoint = Network::Address<_AF>; }
 
 namespace ipv4
 {
-    using endpoint = Network::Template::Address<AF_INET>;
-};
+    using endpoint = Network::Address<AF_INET>;
+    endpoint loopback(port_t _port = DEFAULT_PORT) { return { "127.0.0.1", _port }; }
+    namespace tcp { using endpoint = ipv4::endpoint; auto loopback = ipv4::loopback; }
+    namespace udp { using endpoint = ipv4::endpoint; auto loopback = ipv4::loopback; }
+}
 
 namespace ipv6
 {
-    using endpoint = Network::Template::Address<AF_INET6>;
-};
+    using endpoint = Network::Address<AF_INET6>;
+    endpoint loopback(port_t _port = DEFAULT_PORT) { return { "::1", _port }; }
+    namespace tcp { using endpoint = ipv6::endpoint; auto loopback = ipv6::loopback; }
+    namespace udp { using endpoint = ipv6::endpoint; auto loopback = ipv6::loopback; }
+}
 
-};  //Network::Template
+};  //Network

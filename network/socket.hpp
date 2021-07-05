@@ -2,9 +2,11 @@
 #include "abstract_socket.hpp"
 #include <memory>
 
-namespace Network::Template
+namespace Network
 {
-
+#ifdef _WIN32
+static const std::shared_ptr<WSA> WSA_HANDLER { WSA::init() };
+#endif
 /// Socket
 /**
  * @tparam _Family address family (i.e ipv4, ipv6, ...)
@@ -16,7 +18,7 @@ class Socket : public Network::Abstract::Socket
 {
 protected:
 #ifdef _WIN32
-    const std::shared_ptr<WSA> wsa_ { WSA::init() };
+    const std::shared_ptr<WSA> wsa_ { WSA_HANDLER };
 #endif
     SOCKET s_ { INVALID_SOCKET };
     int mutable error_ { };
@@ -80,7 +82,7 @@ public:
             return;
         }
     }
-    virtual ~Socket() { close(); }
+    virtual ~Socket() override { close(); }
 
     SOCKET socket() const { return s_; }
 
@@ -173,53 +175,53 @@ public:
         return msg;
     }
 
-};  //Network::Template::Socket
+};  //Network::Socket
 
 
 namespace tcp
 {
     template<family_t _Family, int _Protocol = 0>
-    using Socket = Network::Template::Socket<_Family, SOCK_STREAM, _Protocol>;
-};  //Network::Template::tcp
+    using Socket = Network::Socket<_Family, SOCK_STREAM, _Protocol>;
+};  //Network::tcp
 
 namespace udp
 {
     template<family_t _Family, int _Protocol = 0>
-    using Socket = Network::Template::Socket<_Family, SOCK_DGRAM, _Protocol>;
-};  //Network::Template::udp
+    using Socket = Network::Socket<_Family, SOCK_DGRAM, _Protocol>;
+};  //Network::udp
 
 namespace ipv4
 {
     template<int _Type, int _Protocol = 0>
-    using Socket = Network::Template::Socket<AF_INET, _Type, _Protocol>;
+    using Socket = Network::Socket<AF_INET, _Type, _Protocol>;
 
     namespace tcp 
     {
         template<int _Protocol = 0>
-        using Socket = Network::Template::tcp::Socket<AF_INET, _Protocol>;
-    };  //Network::Template::ipv4::tcp
+        using Socket = Network::tcp::Socket<AF_INET, _Protocol>;
+    };  //Network::ipv4::tcp
     namespace udp 
     {
         template<int _Protocol = 0>
-        using Socket = Network::Template::udp::Socket<AF_INET, _Protocol>;
-    };  //Network::Template::ipv4::udp
-};  //Network::Template::ipv4
+        using Socket = Network::udp::Socket<AF_INET, _Protocol>;
+    };  //Network::ipv4::udp
+};  //Network::ipv4
 
 namespace ipv6
 {
     template<int _Type, int _Protocol = 0>
-    using Socket = Network::Template::Socket<AF_INET6, _Type, _Protocol>;
+    using Socket = Network::Socket<AF_INET6, _Type, _Protocol>;
 
     namespace tcp 
     {
         template<int _Protocol = 0>
-        using Socket = Network::Template::tcp::Socket<AF_INET6, _Protocol>;
-    };  //Network::Template::ipv6::tcp
+        using Socket = Network::tcp::Socket<AF_INET6, _Protocol>;
+    };  //Network::ipv6::tcp
     namespace udp 
     {
         template<int _Protocol = 0>
-        using Socket = Network::Template::udp::Socket<AF_INET6, _Protocol>;
-    }; //Network::Template::ipv6::udp
-};  //Network::Template::ipv6
+        using Socket = Network::udp::Socket<AF_INET6, _Protocol>;
+    }; //Network::ipv6::udp
+};  //Network::ipv6
 
 };  //Netowrk::Template
