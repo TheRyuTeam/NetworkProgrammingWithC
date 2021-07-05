@@ -1,3 +1,0 @@
-"C:\Program Files\JetBrains\CLion 2020.1\bin\cmake\win\bin\cmake.exe" -E remove -f CMakeFiles\http_server.dir/objects.a
-C:\cpplib\mingw64\bin\ar.exe cr CMakeFiles\http_server.dir/objects.a @CMakeFiles\http_server.dir\objects1.rsp
-C:\cpplib\mingw64\bin\g++.exe -g   -Wl,--whole-archive CMakeFiles\http_server.dir/objects.a -Wl,--no-whole-archive  -o http_server.exe -Wl,--out-implib,libhttp_server.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\http_server.dir\linklibs.rsp
